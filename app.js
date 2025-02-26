@@ -16,37 +16,41 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 const userSockets = {};
+var user
 
 app.use(express.json());
 const PORT = 3000;
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`http://localhost:${PORT}/`);
-  console.log(`http://localhost:${PORT}/signUp`);
   console.log(`http://localhost:${PORT}/login`);
-  console.log(`http://localhost:${PORT}/group`);
 });
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + '/view/index.html')
-})
-
+// Link to add new User
 app.get("/signUp", (req, res) => {
   res.sendFile(__dirname + '/view/signup.html')
 })
 
+// Link to Login to User 
 app.get("/login", (req, res) => {
+
   res.sendFile(__dirname + '/view/login.html')
 })
 
+// link to Group chat Home screen
 app.get("/group", (req, res) => {
+  user = req.query.user
   res.sendFile(__dirname + '/view/group_chat.html')
 })
 
+// Socket Connection 
 io.on('connection', (socket) => {
+
+  console.log('User:', user);
   console.log('User connected:', socket.id);
 
+  // on Singup event create a new user with a hashed password 
+  // Save the new user to the database 
   socket.on('signUp', async (data) => {
     try {
       const newUser = new User({
@@ -63,6 +67,9 @@ io.on('connection', (socket) => {
     }
   });
 
+  // On Login event 
+  // If user exesits save variables and send login event to Server
+  // If user dosnt exsist throw Invalid user Credentials error  
   socket.on("login", async (data) => {
     try {
       const user = await User.findOne({
@@ -82,36 +89,35 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Event to join a chat room 
+  // Save updated socket id to User name 
   socket.on('join_group', (roomName) => {
+    userSockets[user] = socket.id;
     console.log(`User ${socket.id} joined room ${roomName}`);
     socket.join(roomName);
   });
 
+  // Event to leave a chat room 
   socket.on('leave_group', (roomName) => {
     socket.leave(roomName);
   });
 
+  // Event to send text message to Group chat 
   socket.on('group_message', (data) => {
     console.log(`User ${data.username} sent message to room ${data.group}`);
     io.to(data.group).emit('group_message', data);
   });
 
+  // Event to send message to other user 
   socket.on('personal_message', async (data) => {
-    console.log(data)
-    io.to(data.toUser).emit("personal_message",data);
-  })
-
-  socket.on('typing', (username) => {
-    const group = Object.keys(socket.rooms).find(room => room !== socket.id); 
-    if (group) {
-      socket.to(group).emit('typing', username);
-    }
+    console.log(userSockets[data.toUser])
+    io.to(userSockets[data.toUser]).emit("personal_message", data);
   });
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });
-  
+
 });
 
-app.use(express.static('public'));
+

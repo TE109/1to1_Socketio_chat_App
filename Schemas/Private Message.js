@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 
+// Mesage Schema 
+// from_user, to_user, room, text, String columns 
+// date_sent Column and current date set if not provided 
 const messageSchema = new mongoose.Schema({
   from_user: String,
   to_user: String,

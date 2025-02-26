@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    
+
     <script src="/socket.io/socket.io.js"></script>
 </head>
+
+
 <body>
     <script>
         const ioClient = io();
 
+        // Function to Login
+        // Get username and password from input boxes 
+        // send login request with username and password  
         function login() {
             const username = document.getElementById("username").value;
             const password = document.getElementById("password").value;
@@ -18,25 +24,83 @@
             ioClient.emit("login", { username, password });
         };
 
+        // Go to Sign in Page 
+        function toSignIn() {
+            window.location.href = "/signUp";
+        };
+
+        // When Login succsess full 
+        // Get username and save it localy on the server
+        // Go to the group chat Page with the username in the link
         ioClient.on("loginResponse", (data) => {
             const username = data.user.username;
-            localStorage.setItem(username, JSON.stringify(data.user)); 
-            window.location.href = "/group?user=" + encodeURIComponent(username); 
+            localStorage.setItem(username, JSON.stringify(data.user));
+            window.location.href = "/group?user=" + encodeURIComponent(username);
 
 
-})
+        })
 
-ioClient.on('disconnect', () => {
+        ioClient.on('disconnect', () => {
             localStorage.clear();
-         });;
+        });;
 
     </script>
-    
-    <h1>Login</h1>    
+
+    <!-- Text and Password input fields -->
+    <h1>Login</h1>
     <input type="text" id="username" placeholder="Enter username" /><br />
     <input type="password" id="password" placeholder="Enter password" /><br />
-    <button onclick="login()">Login</button>
 
-    
+    <!-- Buttons to call login or Move to signin function -->
+    <button onclick="login()">Login</button>
+    <button onclick="toSignIn()">Sign Up</button>
+
+
+
 </body>
+
 </html>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+    }
+
+    h1,
+    h4 {
+        color: #333;
+        text-align: center;
+    }
+
+    button {
+        background-color: #007BFF;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px auto;
+        display: block;
+        width: 80%;
+        max-width: 200px;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    input {
+        padding: 10px;
+        font-size: 16px;
+        width: 80%;
+        max-width: 400px;
+        margin: 10px auto;
+        display: block;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #fff;
+    }
+</style>

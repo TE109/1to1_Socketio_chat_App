@@ -1,29 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Group Chat</title>
-    
+
     <script src="/socket.io/socket.io.js"></script>
 </head>
+
+
 <body>
     <script>
+        // Connect to Socket 
         const ioClient = io();
-        const messageInput = document.getElementById('message');
-        const feedback = document.getElementById('feedback');;
 
+        // Get Message from the user input 
+        const messageInput = document.getElementById('message');
+
+        // Get value from local storage 
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
         }
 
-        ioClient.on('connect', () => {            
+        // On connect add text that says hello and the Users Username 
+        ioClient.on('connect', () => {
             const username = getQueryParam("user");
             const user = JSON.parse(localStorage.getItem(username));
             document.getElementById('socketID').innerHTML = "Hello " + user.username;
         });
 
+        // Get which radio button is Selected 
+        // send Join group event with selected button 
         function joinGroup() {
             const groupRadio = document.querySelector('input[name="group"]:checked');
             if (groupRadio) {
@@ -32,6 +41,8 @@
             }
         }
 
+        // Get which radio button is Selected 
+        // send leave group event with selected button 
         function leaveGroup() {
             const groupRadio = document.querySelector('input[name="group"]:checked');
             if (groupRadio) {
@@ -40,6 +51,8 @@
             }
         }
 
+        // Get which radio button is Selected 
+        // Send group message event with retrived message, username, and User information  
         function sendGroupMessage() {
             const message = document.getElementById('message').value;
             const username = getQueryParam("user");
@@ -52,9 +65,11 @@
             };
 
             ioClient.emit('group_message', data);
-            document.getElementById('message').value = ''; 
+            document.getElementById('message').value = '';
         }
 
+        // Gets the message and Repient for 1 to 1 message 
+        // Send Personal message event with retrived information 
         function sendPersonalMessage() {
             const message = document.getElementById('message').value;
             const recipent = document.getElementById('private_recipent').value;
@@ -69,57 +84,149 @@
             };
 
             ioClient.emit('personal_message', data);
-            document.getElementById('message').value = ''; 
+            document.getElementById('message').value = '';
         }
-        
+
+        // On a group message event add the message to the Chat history 
         ioClient.on('group_message', (data) => {
             const container = document.getElementById('container');
             const msg = `<p><b>${data.group} : ${data.username}:</b> ${data.message}</p>`;
             container.innerHTML += msg;
         });
 
+        // On a personal message event add the message to the Chat history 
         ioClient.on('personal_message', (data) => {
             const container = document.getElementById('container');
             const msg = `<p><b>${data.username} Sent: </b> ${data.message}</p>`;
             container.innerHTML += msg;
         });
 
-        messageInput.addEventListener('keypress', function(data){
-            alert('s')
-            const username = getQueryParam("user");
-            const user = JSON.parse(localStorage.getItem(username));
-            ioClient.emit('typing',user.username);
-        })
-
-        ioClient.on('typing',(data)=> {
-            
-            feedback.innerHTML = '<p><em>'+data+' is typing ... </em></p>'
-        })
-
-
-
-        
     </script>
 
     <h1>Group Chat</h1>
-    <h4 id="socketID"></h4>
-    <input type="radio" id="group1" name="group" value="devops">Devops <br />
-    <input type="radio" id="group2" name="group" value="cloud">Cloud <br />
-    <input type="radio" id="group3" name="group" value="computing">Computing <br />
-    <input type="radio" id="group4" name="group" value="covid19">Covid19 <br />
-    <input type="radio" id="group5" name="group" value="sports">Sports <br />
-    <input type="radio" id="group6" name="group" value="nodeJS">NodeJS <br />
+    <h2 id="socketID"></h4>
+
+    <!-- Radio Buttons to select groups -->
+    <div class="radio-group">
+        <label><input type="radio" id="group1" name="group" value="devops"> Devops</label>
+        <label><input type="radio" id="group2" name="group" value="cloud"> Cloud</label>
+        <label><input type="radio" id="group3" name="group" value="computing"> Computing</label>
+        <label><input type="radio" id="group4" name="group" value="covid19"> Covid19</label>
+        <label><input type="radio" id="group5" name="group" value="sports"> Sports</label>
+        <label><input type="radio" id="group6" name="group" value="nodeJS"> NodeJS</label>
+    </div>
+
+    <!-- button to trigger join group -->
     <button onclick="joinGroup()">Join Group</button><br /><br />
 
-    <input type="text" id="message" name="message" placeholder="Enter your message" />
-    <button onclick="sendGroupMessage()">Send Group Message</button> <br /><br />
+    <!-- Message Input and Send Button -->
+    <div class="message-container">
+        <input type="text" id="message" name="message" placeholder="Enter your message" />
+        <button onclick="sendGroupMessage()">Send Group Message</button>
+    </div>
 
-    <input type="text" id="private_recipent" name="message" placeholder="Enter recipient Username" />
-    <button onclick="sendPersonalMessage()">Send Private Message</button>
+    <!-- Private Message Input and Send Button -->
+    <div class="message-container">
+        <input type="text" id="private_recipent" name="message" placeholder="Enter recipient Username" />
+        <button onclick="sendPersonalMessage()">Send Private Message</button>
+    </div>
 
+    <!-- Previous chat -->
     <h3>Chat History</h3>
     <div id="container"></div>
-    <div id="feedback">s</div>
+
+    <!-- Button to leave group -->
     <button onclick="leaveGroup()">Leave Group</button>
 </body>
+
 </html>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+
+    h1,
+    h2 {
+        color: #333;
+        text-align: center;
+    }
+
+    button {
+        background-color: #007BFF;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        display: block;
+        width: 80%;
+        max-width: 200px;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    input[type="text"] {
+        padding: 10px;
+        font-size: 16px;
+        margin-top: 10px;
+        width: 80%;
+        max-width: 300px;
+    }
+
+    input[type="radio"] {
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+
+    .radio-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .radio-group label {
+        margin-right: 20px;
+        font-size: 16px;
+    }
+
+    .message-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .message-container input[type="text"] {
+        width: 200px;
+    }
+
+    .message-container button {
+        width: auto;
+    }
+
+    #container {
+        margin-top: 20px;
+        width: 80%;
+        max-width: 600px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        background-color: #fff;
+        border-radius: 5px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>

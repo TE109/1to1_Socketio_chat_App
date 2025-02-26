@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signup</title>
-    
+
     <script src="/socket.io/socket.io.js"></script>
 </head>
+
 <body>
     <script>
         const ioClient = io();
 
+        // Retrive username, firstname, lastname, and password 
+        // Send event to add new user to the database 
         function SignUp() {
             const username = document.getElementById("username").value;
             const firstname = document.getElementById("firstname").value;
@@ -20,22 +24,79 @@
             ioClient.emit('signUp', { username, firstname, lastname, password });
         }
 
+        // Function to go to login page
+        function toLogIn() {
+            window.location.href = "/login";
+        };
+
+        // On a succsessful login add user to local storage and go to login page 
         ioClient.on("loginResponse", (data) => {
             const username = data.user.username;
-            localStorage.setItem("currentUser", JSON.stringify(data.user)); 
-            window.location.href = "/login";
+            localStorage.setItem("currentUser", JSON.stringify(data.user));
+            toLogIn();
         });
 
+        // When disconecting clear local storage 
         ioClient.on('disconnect', () => {
             localStorage.clear();
-         });;
+        });;
     </script>
 
     <h1>Signup</h1>
+    <!-- Input fields for username, first and last name, and password -->
     <input type="text" id="username" placeholder="Enter username" /><br />
     <input type="text" id="firstname" placeholder="Enter your first name" /><br />
     <input type="text" id="lastname" placeholder="Enter your last name" /><br />
     <input type="password" id="password" placeholder="Enter password" /><br />
+
+    <!-- Buttons for Signup and go to login page functions -->
     <button onclick="SignUp()">Create User</button>
+    <button onclick="toLogIn()">Login</button>
+
 </body>
+
 </html>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+    }
+
+    h1,
+    h4 {
+        color: #333;
+        text-align: center;
+    }
+
+    button {
+        background-color: #007BFF;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px auto;
+        display: block;
+        width: 80%;
+        max-width: 200px;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    input {
+        padding: 10px;
+        font-size: 16px;
+        width: 80%;
+        max-width: 400px;
+        margin: 10px auto;
+        display: block;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #fff;
+    }
+</style>
